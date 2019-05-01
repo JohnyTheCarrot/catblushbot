@@ -52,7 +52,7 @@ class leveling(commands.Cog):
 		if "LEVELING" in DBHandler.get_server_features(ctx.guild.id) and ctx.message.author.guild_permissions.administrator:
 			b = io.BytesIO(b"./assets/tenor.gif")
 			if member_registered(member):
-				new_exp = get_registered_member(member)["xp"]/2
+				new_exp = int(get_registered_member(member)["xp"]/2)
 				levels.update_one({"id": member.id, "guild_id": ctx.guild.id}, {"$set": {"xp": new_exp, "level": 0}})
 				await givexp(member, 0)
 				await ctx.send(content="Perfectly balanced, as all xp should be.\n{}'s xp is now {}".format(sanitize(member.name), new_exp), file=discord.File(fp=b.getvalue(), filename="snap.gif"))
@@ -84,6 +84,18 @@ class leveling(commands.Cog):
 		for x in get_unlockable_roles(ctx.guild.id):
 			text+="{}\n".format(x)
 		await ctx.send("```{}```".format(text))
+
+	@commands.command()
+	@commands.is_owner()
+	async def beans(self, ctx, member: discord.Member):
+		levels.update_one({"id": member.id, "guild_id": ctx.guild.id}, {"$set": {"beans": "beans"}})
+		await ctx.send("beans")
+
+	@commands.command()
+	@commands.is_owner()
+	async def setlevel(self, ctx, member: discord.Member, level: int):
+		levels.update_one({"id": member.id, "guild_id": ctx.guild.id}, {"$set": {"level": level}})
+		await ctx.send("Set {}'s level to {}".format(sanitize(member.name), level))
 
 def sanitize(msg: str):
 	return discord.utils.escape_markdown(discord.utils.escape_mentions(msg))
@@ -158,7 +170,7 @@ def  set_unlockable_role_at(guild: int, level: int, xp: int, role: discord.Role)
 		servers.update_one({"ID": guild}, {"$set": {"unlockable_roles": unlockable_roles}})
 
 def get_unlockable_roles(guild: int):
-	doc = servers.find({"ID": guild}).limit(1)
+	doc = servers.find({"ID": guild})
 	if doc is not None:
 		unlockable_roles = []
 		for x in doc:

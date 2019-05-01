@@ -6,8 +6,6 @@ import leveling
 from prometheus_client import CollectorRegistry
 import json
 
-metrics_reg = CollectorRegistry()
-
 def get_prefix(bot, message):
 	if not message.guild:
 		return '$'
