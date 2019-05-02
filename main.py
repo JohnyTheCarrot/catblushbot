@@ -5,6 +5,12 @@ import DBHandler
 import leveling
 from prometheus_client import CollectorRegistry
 import json
+import pymongo
+import time
+
+client = pymongo.MongoClient("mongodb://localhost:27017/")
+database = client["database"]
+levels = database["levels"]
 
 def get_prefix(bot, message):
 	if not message.guild:
@@ -15,6 +21,7 @@ def get_prefix(bot, message):
 
 
 bot = commands.Bot(command_prefix=get_prefix)
+bot.load_extension("jishaku")
 
 extensions = ['admin', 'setup', 'fun', 'moderation', 'leveling']
 
@@ -69,7 +76,21 @@ async def on_message(message):
 		return
 	#TODO: Fix bug where pinging the bot does give you XP
 	if not message.content.startswith(DBHandler.get_server_prefix(message.guild.id), 0, 1):
-		await leveling.givexp(message.author, 5)
+            doc = levels.find({"id": message.author.id, "guild_id": message.guild.id, "lastexecuted": {"$exists": True}}, {"_id": 0}).limit(0)
+            exists = False
+            content = None
+            for x in doc:
+                exists = True
+                content = x
+                break;
+            current_unix = int(time.time())
+            if exists:
+                if current_unix >= content["lastexecuted"]+15: 
+                    await leveling.givexp(message.author, 5)
+                    levels.update_one({"id": message.author.id, "guild_id": message.guild.id}, {"$set": {"lastexecuted": current_unix}})
+                else:
+                    pass
+                    #print("User {} sent a message, but couldn't gain xp because of their cooldown. They have {} left to their cooldown.".format(message.author.name, (content["lastexecuted"]+15)-current_unix))
 	if ":catblush:" in message.content and message.channel.id == 565143658156785684:
 		await message.author.add_roles(discord.utils.get(message.guild.roles, name="Movie Fren :catblush:"))
 	ctx: commands.Context = await bot.get_context(message)
