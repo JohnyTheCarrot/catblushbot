@@ -3,7 +3,7 @@ from discord.ext import commands
 from Util import Logging
 import DBHandler
 import leveling
-from prometheus_client import CollectorRegistry
+from PromMonitoring import start_server, command_counter
 import json
 
 def get_prefix(bot, message):
@@ -16,7 +16,7 @@ def get_prefix(bot, message):
 
 bot = commands.Bot(command_prefix=get_prefix)
 
-extensions = ['admin', 'setup', 'fun', 'moderation', 'leveling']
+extensions = ['admin', 'setup', 'fun', 'moderation', 'leveling', 'grafana']
 
 def get_guild(ID: int):
 	return bot.get_guild(ID)
@@ -119,6 +119,7 @@ async def on_member_join(member):
 							.format(sanitize(member.name), member.discriminator, member.id)
 							)
 
+
 def sanitize(msg: str):
 	return discord.utils.escape_markdown(discord.utils.escape_mentions(msg))
 	
@@ -128,6 +129,9 @@ if __name__ == '__main__':
 			bot.load_extension(extension)
 		except Exception as error:
 			print('{} cannot be loaded. [{}]'.format(extension, error))
+
+	print('starting prometheus client on port 9091')
+	start_server()
 
 with open('./stuff_I_probably_shouldnt_leek.json', 'r') as json_file:
 	copied_json = json.load(json_file)
