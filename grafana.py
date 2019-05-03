@@ -18,7 +18,7 @@ class GrafanaCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_completion(self, ctx: commands.Context):
-        command_counter.track_command_run(ctx.command.name, ctx.message.guild.id if ctx.message.guild is not None else 0)
+        command_counter.track_command_run(ctx.command.name)
 
 
 

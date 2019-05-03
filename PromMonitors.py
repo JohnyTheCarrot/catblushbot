@@ -3,8 +3,7 @@ import prometheus_client as prom
 class CommandCounter:
     def __init__(self, registry: prom.CollectorRegistry) -> None:
         self.command_counter = prom.Gauge("commands_ran", "How many times commands were ran and who ran them", [
-            "command_name",
-            "guild_id"
+            "command_name"
         ], registry=registry)
 
     def track_command_run(self, command_name: str):
