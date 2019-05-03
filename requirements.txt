@@ -1,4 +1,3 @@
 discord
 prometheus_client
-json
 pymongo
